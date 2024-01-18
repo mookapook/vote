@@ -2,11 +2,13 @@ package vote
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
 	ttlmap "9mookapook/vote/ttl"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,6 +30,7 @@ func model() *ModelImpl {
 			m = &ModelImpl{db: db, cache: cache}
 		}
 	}
+
 	return m
 }
 
@@ -177,23 +180,39 @@ func (b *ModelImpl) createIndex() {
 	collection := b.db.Collection(_collectionVote)
 
 	// สร้าง index
-	var isTrue bool = true
-	var isName string = "itemid_and_userid_vote"
+	// var isTrue bool = true
+	// var isName string = ""
 	otp := options.IndexOptions{}
-	otp.Background = &isTrue
-	otp.Unique = &isTrue
-	otp.Name = &isName
+	otp.SetBackground(true)
+	otp.SetUnique(true)
+	otp.SetName("itemvoteUser")
 
 	indexes := []mongo.IndexModel{
 		{
-			Keys: primitive.M{
-				"itemid": 1,
-				"userid": 1,
+			Keys: bson.D{
+				{Key: "itemid", Value: -1},
+				{Key: "userid", Value: -1},
 			},
 			Options: &otp,
 		},
 	}
 	_, err := collection.Indexes().CreateMany(context.Background(), indexes)
+	if err != nil {
+		log.Panicln(err)
+		panic(err)
+	}
+	// isTrue = false
+	// isName = "itemid_vote"
+	otp.SetBackground(true)
+	otp.SetUnique(false)
+	otp.SetName("itemid_vote")
+	indexesOne := mongo.IndexModel{
+		Keys: bson.M{
+			"itemid": 1,
+		},
+		Options: &otp,
+	}
+	_, err = collection.Indexes().CreateOne(context.Background(), indexesOne)
 	if err != nil {
 		panic(err)
 	}
@@ -261,10 +280,12 @@ func (b *ModelImpl) GetAllItem(skip, limit int, sortby, user, status string) []A
 	}
 	pipelineStatement := []primitive.M{}
 	pipelineops := primitive.M{}
+
 	if status != "all" {
 		pipelineops["$match"] = primitive.M{"status": status}
 		pipelineStatement = append(pipelineStatement, pipelineops)
 	}
+
 	pipelineops = primitive.M{}
 	pipelineops["$lookup"] = primitive.M{
 		"from": "vote",
@@ -390,4 +411,100 @@ func (b *ModelImpl) CheckVote(q primitive.M) bool {
 		go UserUniq(data.Itemid.Hex())
 	}
 	return true
+}
+
+func (b *ModelImpl) ReportItem(status, st, end string) []Action {
+	filter := primitive.M{}
+	if status != "" {
+		filter["status"] = status
+	}
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	if !IsEmpty(st) {
+		if len(st) == 10 {
+			if tt, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT23:59:59+07:00", st)); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$gte": tt}
+			}
+		} else {
+			if tt, err := time.Parse(time.RFC3339, st); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$gte": tt}
+			}
+		}
+	}
+	if !IsEmpty(end) {
+		if len(st) == 10 {
+			if tt, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT23:59:59+07:00", end)); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$lte": tt}
+			}
+		} else {
+			if tt, err := time.Parse(time.RFC3339, end); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$lte": tt}
+			}
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cursor, err := b.db.Collection(_collectionItem).Find(ctx, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(context.Background())
+
+	var items []Action
+	if err := cursor.All(context.Background(), &items); err != nil {
+		log.Fatal(err)
+	}
+
+	return items
+}
+
+func (b *ModelImpl) ReportVoteItemById(id primitive.ObjectID, st, end string) []Action {
+	filter := primitive.M{}
+
+	filter["itemid"] = id
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	if !IsEmpty(st) {
+		if len(st) == 10 {
+			if tt, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT23:59:59+07:00", st)); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$gte": tt}
+			}
+		} else {
+			if tt, err := time.Parse(time.RFC3339, st); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$gte": tt}
+			}
+		}
+	}
+	if !IsEmpty(end) {
+		if len(st) == 10 {
+			if tt, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT23:59:59+07:00", end)); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$lte": tt}
+			}
+		} else {
+			if tt, err := time.Parse(time.RFC3339, end); err == nil {
+				tt = tt.In(loc)
+				filter["cd"] = primitive.M{"$lte": tt}
+			}
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cursor, err := b.db.Collection(_collectionItem).Find(ctx, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(context.Background())
+
+	var items []Action
+	if err := cursor.All(context.Background(), &items); err != nil {
+		log.Fatal(err)
+	}
+
+	return items
 }

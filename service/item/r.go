@@ -66,7 +66,7 @@ func Route() {
 	app.PUT("/v1/itemopenclose/:id", c.OpenCloseItem, JWTAuthMiddleware)
 
 	// Login
-	app.POST("/v1/login", c.LoginUser, JWTAuthMiddleware)
+	app.POST("/v1/login", c.LoginUser)
 
 }
 

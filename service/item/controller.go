@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/go-playground/validator/v10"
 	echo "github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -38,7 +39,7 @@ func NewController() *Controller {
 		"123456x",
 		"Lamda",
 	}
-
+	m.createIndex()
 	//go c.autoBatchData("")
 	return &c
 }
@@ -406,4 +407,40 @@ func (c *Controller) ClearbyItem(ctx echo.Context) error {
 		"error": "",
 		"data":  datareturn,
 	})
+}
+
+func (c *Controller) ExportItem(ctx echo.Context) error {
+
+	// Create Excel file
+	f := excelize.NewFile()
+	f.NewSheet("Sheet1")
+
+	// Write headers
+	headers := []string{"Name", "Description", "Vote", "User", "CreateDate"}
+	row := 1
+	for _, header := range headers {
+		f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), header)
+		row++
+	}
+	datareturn := c.model.GetAllItem(0, 0, "vote", "", "report")
+	// Write data
+	for _, doc := range datareturn {
+
+		f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), doc.Name)
+		f.SetCellValue("Sheet1", fmt.Sprintf("B%d", row), doc.Description)
+		f.SetCellValue("Sheet1", fmt.Sprintf("C%d", row), doc.Vote)
+		f.SetCellValue("Sheet1", fmt.Sprintf("D%d", row), doc.UserName)
+		datetimeString := time.Date(doc.CreateTime.Year(), doc.CreateTime.Month(), doc.CreateTime.Day(), doc.CreateTime.Hour(), doc.CreateTime.Minute(), doc.CreateTime.Second(), 0, time.UTC).Format("2006-01-02 15:04:05")
+		f.SetCellValue("Sheet1", fmt.Sprintf("E%d", row), datetimeString)
+		row++
+	}
+
+	// Save Excel file
+	if err := f.SaveAs("exportitem.xlsx"); err != nil {
+		log.Fatal(err)
+	}
+	ctx.Response().Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	ctx.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=exportitem.xlsx"))
+
+	return f.Write(ctx.Response())
 }
