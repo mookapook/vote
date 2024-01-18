@@ -157,7 +157,7 @@ func (b *ModelImpl) ClearItemAndVoteALL() (bool, error) {
 	if r.ModifiedCount > 0 {
 		filter := primitive.M{}
 		success = true
-		userVote = nil
+		userVote = make(map[string][]string)
 		go b.cache.DelALL()
 		go b.db.Collection(_collectionVote).DeleteMany(context.Background(), filter)
 	}
@@ -461,7 +461,7 @@ func (b *ModelImpl) ReportItem(status, st, end string) []Action {
 	return items
 }
 
-func (b *ModelImpl) ReportVoteItemById(id primitive.ObjectID, st, end string) []Action {
+func (b *ModelImpl) ReportVoteItemById(id primitive.ObjectID, st, end string) []VoteUser {
 	filter := primitive.M{}
 
 	filter["itemid"] = id
@@ -495,13 +495,13 @@ func (b *ModelImpl) ReportVoteItemById(id primitive.ObjectID, st, end string) []
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cursor, err := b.db.Collection(_collectionItem).Find(ctx, filter)
+	cursor, err := b.db.Collection(_collectionVote).Find(ctx, filter)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer cursor.Close(context.Background())
 
-	var items []Action
+	var items []VoteUser
 	if err := cursor.All(context.Background(), &items); err != nil {
 		log.Fatal(err)
 	}

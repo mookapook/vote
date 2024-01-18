@@ -53,13 +53,15 @@ func Route() {
 	app.PUT("/v1/itemcreate/:id", c.UpdateitemVote, JWTAuthMiddleware)
 	// Remove Item
 
-	app.DELETE("/v1/itemcreate/:id", c.UpdateitemVote, JWTAuthMiddleware)
+	app.DELETE("/v1/itemcreate/:id", c.Removeitem, JWTAuthMiddleware)
+
 	// Vote By Item
-	app.PUT("/v1/itemvote/:id", c.itemVoteByID, JWTAuthMiddleware)
+	app.POST("/v1/itemvote/:id", c.itemVoteByID, JWTAuthMiddleware)
 
 	// Remove Data All and Vote member All
 	app.PUT("/v1/itemclear", c.ClearALL, JWTAuthMiddleware)
 	// Clear data by id
+
 	app.PUT("/v1/itemclearbyid/:id", c.ClearbyItem, JWTAuthMiddleware)
 
 	// Set Staus Open Close
@@ -68,6 +70,11 @@ func Route() {
 	// Login
 	app.POST("/v1/login", c.LoginUser)
 
+	// Export Data ALL
+	app.GET("/v1/export", c.ExportItem, JWTAuthMiddleware)
+
+	// Export Data ALL
+	app.GET("/v1/exporvoteitem/:id", c.ExportItem, JWTAuthMiddleware)
 }
 
 func JWTAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

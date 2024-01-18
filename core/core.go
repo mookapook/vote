@@ -16,27 +16,14 @@ func APP() *echo.Echo {
 		app.HideBanner = false
 
 		// app.HTTPErrorHandler = HTTPError
-		// app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		// 	Level: 5,
-		// }))
+		app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+			Level: 5,
+		}))
 		app.Use(middleware.Logger())
 		app.Use(middleware.Recover())
-		// app.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		// 	TokenLookup: "header:X-XSRF-TOKEN",
-		// 	ContextKey:  "csrf",
-		// 	CookieName:  "csrf",
-		// }))
-		//getPublicKey()
-
-		// app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		// 	AllowOrigins: []string{"*"},
-		// 	AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-		// }))
 
 		app.Pre(middleware.RemoveTrailingSlash())
-
 	}
-	// DEVMODE = os.Getenv("DEVMODE")
 
 	return app
 }

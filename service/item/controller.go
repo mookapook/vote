@@ -122,7 +122,7 @@ func (c *Controller) UpdateitemVote(ctx echo.Context) error {
 	}
 	CanEdit, err := c.model.CheckVoteMoreZero(ID)
 	if err != nil || CanEdit == false {
-		return ctx.JSON(http.StatusNoContent, map[string]interface{}{
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
 			"error": "Cannot Edit / Remove",
 		})
 	}
@@ -141,6 +141,45 @@ func (c *Controller) UpdateitemVote(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": "Failed to Update ",
+		})
+	}
+
+	// return response as JSON
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"data": datareturn,
+	})
+}
+
+//Update itemVote
+func (c *Controller) Removeitem(ctx echo.Context) error {
+	ID, err := Converthex(ctx.Param("id"))
+	log.Println(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusNoContent, map[string]interface{}{
+			"error": "No Content",
+		})
+	}
+	CanEdit, err := c.model.CheckVoteMoreZero(ID)
+	if err != nil || CanEdit == false {
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Cannot Edit / Remove",
+		})
+	}
+
+	user := ctx.Get("userId").(string)
+	u, _ := mapUser(user)
+	if u == "" {
+		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"error": "Unauthorized",
+		})
+	}
+
+	//data.ID = ID
+
+	datareturn, err := c.model.DeleteItem(ID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Failed to Remove ",
 		})
 	}
 
@@ -172,25 +211,29 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 		//val = append(val, userid)
 		if Contains(val, user) {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
-				"error": "You Vote Exits",
+				"error": "You have voted",
 				"data":  "",
 			})
 		}
 
 	}
+
+	open, err := c.model.GetItemVoteByID(ID)
+	if err != nil || open.Status == "close" {
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Cannot Vote or Item Close",
+			"data":  "",
+		})
+	}
+
 	q := primitive.M{}
 	q["itemid"] = ID
 	q["userid"] = user
 	CanNotVote := c.model.CheckVote(q)
 	if CanNotVote == true {
-		return ctx.JSON(http.StatusNoContent, map[string]interface{}{
-			"error": " CanNotVote",
-		})
-	}
-	open, err := c.model.GetItemVoteByID(ID)
-	if err != nil || open.Status == "close" {
-		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "Cannot Vote or Item Close",
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "You have voted",
+			"data":  "",
 		})
 	}
 
@@ -200,7 +243,7 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 	v.Itemid = ID
 	v.UserID = user
 	cx, err := c.model.VoteItemByUser(&v)
-
+	log.Println(err)
 	if err != nil || cx == false {
 		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": "Cannot Vote",
@@ -244,8 +287,8 @@ func (c *Controller) OpenCloseItem(ctx echo.Context) error {
 
 	if data.Status != Open {
 		if data.Status != Close {
-			return ctx.JSON(http.StatusNoContent, map[string]interface{}{
-				"error": "Not Status Enum",
+			return ctx.JSON(http.StatusOK, map[string]interface{}{
+				"error": "No Have Status Setup",
 			})
 		}
 	}
@@ -310,12 +353,18 @@ func (c *Controller) GetAllItem(ctx echo.Context) error {
 	}
 	limit := 10
 	skip := (page - 1) * limit
+	if page == 1 {
+		page := page + 1
+		params += fmt.Sprintf("&page=%d", page)
+	}
 	user := ctx.Get("userId").(string)
 	datareturn := c.model.GetAllItem(skip, limit+1, "vote", user, status)
 	next := ""
 	if len(datareturn) > limit {
+
 		//temp := datainfo.Content
 		datareturn = datareturn[:len(datareturn)-1]
+
 		next = params
 	}
 	return ctx.JSON(http.StatusOK, map[string]interface{}{
@@ -398,7 +447,7 @@ func (c *Controller) ClearbyItem(ctx echo.Context) error {
 	datareturn, err := c.model.ClearItemAndVoteByID(ID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "Failed to OpenCloseItem ",
+			"error": "Failed to ClearItem ",
 		})
 	}
 
@@ -416,13 +465,18 @@ func (c *Controller) ExportItem(ctx echo.Context) error {
 	f.NewSheet("Sheet1")
 
 	// Write headers
-	headers := []string{"Name", "Description", "Vote", "User", "CreateDate"}
+	//headers := []string{"Name", "Description", "Vote", "User", "CreateDate", "Status"}
 	row := 1
-	for _, header := range headers {
-		f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), header)
-		row++
-	}
-	datareturn := c.model.GetAllItem(0, 0, "vote", "", "report")
+
+	f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), "Name")
+	f.SetCellValue("Sheet1", fmt.Sprintf("B%d", row), "Description")
+	f.SetCellValue("Sheet1", fmt.Sprintf("C%d", row), "Vote")
+	f.SetCellValue("Sheet1", fmt.Sprintf("D%d", row), "User")
+	f.SetCellValue("Sheet1", fmt.Sprintf("E%d", row), "CreateDate")
+	f.SetCellValue("Sheet1", fmt.Sprintf("F%d", row), "Status")
+
+	row++
+	datareturn := c.model.ReportItem("", "", "")
 	// Write data
 	for _, doc := range datareturn {
 
@@ -432,6 +486,7 @@ func (c *Controller) ExportItem(ctx echo.Context) error {
 		f.SetCellValue("Sheet1", fmt.Sprintf("D%d", row), doc.UserName)
 		datetimeString := time.Date(doc.CreateTime.Year(), doc.CreateTime.Month(), doc.CreateTime.Day(), doc.CreateTime.Hour(), doc.CreateTime.Minute(), doc.CreateTime.Second(), 0, time.UTC).Format("2006-01-02 15:04:05")
 		f.SetCellValue("Sheet1", fmt.Sprintf("E%d", row), datetimeString)
+		f.SetCellValue("Sheet1", fmt.Sprintf("F%d", row), doc.Status)
 		row++
 	}
 
@@ -441,6 +496,45 @@ func (c *Controller) ExportItem(ctx echo.Context) error {
 	}
 	ctx.Response().Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	ctx.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=exportitem.xlsx"))
+
+	return f.Write(ctx.Response())
+}
+
+func (c *Controller) ExportVoteByItem(ctx echo.Context) error {
+	ID, err := Converthex(ctx.Param("id"))
+	log.Println(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusNoContent, map[string]interface{}{
+			"error": "No Content",
+		})
+	}
+	// Create Excel file
+	f := excelize.NewFile()
+	f.NewSheet("Sheet1")
+
+	// Write headers
+	//headers := []string{"Name", "Description", "Vote", "User", "CreateDate", "Status"}
+	row := 1
+
+	f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), "Name")
+	f.SetCellValue("Sheet1", fmt.Sprintf("B%d", row), "CreateDate")
+	row++
+	datareturn := c.model.ReportVoteItemById(ID, "", "")
+	// Write data
+	for _, doc := range datareturn {
+		u, _ := mapUser(doc.UserID)
+		f.SetCellValue("Sheet1", fmt.Sprintf("A%d", row), u)
+		datetimeString := time.Date(doc.CreateTime.Year(), doc.CreateTime.Month(), doc.CreateTime.Day(), doc.CreateTime.Hour(), doc.CreateTime.Minute(), doc.CreateTime.Second(), 0, time.UTC).Format("2006-01-02 15:04:05")
+		f.SetCellValue("Sheet1", fmt.Sprintf("B%d", row), datetimeString)
+		row++
+	}
+
+	// Save Excel file
+	if err := f.SaveAs("voteitem.xlsx"); err != nil {
+		log.Fatal(err)
+	}
+	ctx.Response().Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	ctx.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=voteitem.xlsx"))
 
 	return f.Write(ctx.Response())
 }
