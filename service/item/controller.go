@@ -39,6 +39,13 @@ func NewController() *Controller {
 		"123456x",
 		"Lamda",
 	}
+
+	UserLogin["mookrob"] = DataUser{
+		"user2",
+		"123456x7",
+		"mookrob",
+	}
+
 	m.createIndex()
 	//go c.autoBatchData("")
 	return &c
