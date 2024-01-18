@@ -150,5 +150,30 @@ Req/Bytes counts sampled once per second.
 3k requests in 10.02s, 4.74 MB read
 ```
 
+# Vote By Item
+```
+autocannon -c 1 -d 1 -m POST  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMzMjA4NzgsIm5hbWUiOiJBbGljZSIsInVzZXJJZCI6InVzZXIxIn0.7Axm0XyX2UgwFC_27RjOXAClYoX5saVWq88InYwgEm8"   -H "Content-Type: application/json"  "http://localhost:8080/v1/itemvote/65a7887f166933dd2b7a834f"
+Running 1s test @ http://localhost:8080/v1/itemvote/65a7887f166933dd2b7a834f
+1 connections
+
+
+┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
+│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
+├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
+│ Latency │ 0 ms │ 0 ms │ 0 ms  │ 0 ms │ 0.02 ms │ 0.31 ms │ 11 ms │
+└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
+┌───────────┬────────┬────────┬────────┬────────┬────────┬───────┬────────┐
+│ Stat      │ 1%     │ 2.5%   │ 50%    │ 97.5%  │ Avg    │ Stdev │ Min    │
+├───────────┼────────┼────────┼────────┼────────┼────────┼───────┼────────┤
+│ Req/Sec   │ 4,163  │ 4,163  │ 4,163  │ 4,163  │ 4,162  │ 0     │ 4,161  │
+├───────────┼────────┼────────┼────────┼────────┼────────┼───────┼────────┤
+│ Bytes/Sec │ 762 kB │ 762 kB │ 762 kB │ 762 kB │ 762 kB │ 0 B   │ 761 kB │
+└───────────┴────────┴────────┴────────┴────────┴────────┴───────┴────────┘
+
+Req/Bytes counts sampled once per second.
+# of samples: 1
+
+4k requests in 1.01s, 761 kB read
+```
 
 
