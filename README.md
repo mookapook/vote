@@ -1,6 +1,10 @@
 Open Terminal
 
-cd go path up level path project
+cd path/project
+
+copy file docker-compose ออกไป 1 ชั้น
+
+cd .. // cd go path up level path project
 
 docker-compose up -d
 
