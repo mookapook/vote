@@ -99,26 +99,56 @@ Req/Bytes counts sampled once per second.
 
 # Item Update
 ```
-autocannon -c 10 -d 10 -m POST  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMzMjA4NzgsIm5hbWUiOiJBbGljZSIsInVzZXJJZCI6InVzZXIxIn0.7Axm0XyX2UgwFC_27RjOXAClYoX5saVWq88InYwgEm8"   -H "Content-Type: application/json" -b '{"name": "test Autuconn","description":"test Autocannon"}' "http://localhost:8080/v1/itemcreate"
-Running 10s test @ http://localhost:8080/v1/itemcreate
+autocannon -c 10 -d 10 -m PUT  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMzMjA4NzgsIm5hbWUiOiJBbGljZSIsInVzZXJJZCI6InVzZXIxIn0.7Axm0XyX2UgwFC_27RjOXAClYoX5saVWq88InYwgEm8"   -H "Content-Type: application/json" -b '{"name": "test Autuconn update","description":"test Autocannon"}' "http://localhost:8080/v1/itemcreate/65a89b41ff1dc45c844c523d"
+Running 10s test @ http://localhost:8080/v1/itemcreate/65a89b41ff1dc45c844c523d
 10 connections
 
 
-┌─────────┬──────┬──────┬───────┬───────┬────────┬─────────┬───────┐
-│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%   │ Avg    │ Stdev   │ Max   │
-├─────────┼──────┼──────┼───────┼───────┼────────┼─────────┼───────┤
-│ Latency │ 2 ms │ 4 ms │ 12 ms │ 15 ms │ 4.9 ms │ 2.65 ms │ 39 ms │
-└─────────┴──────┴──────┴───────┴───────┴────────┴─────────┴───────┘
-┌───────────┬────────┬────────┬────────┬────────┬─────────┬─────────┬────────┐
-│ Stat      │ 1%     │ 2.5%   │ 50%    │ 97.5%  │ Avg     │ Stdev   │ Min    │
-├───────────┼────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
-│ Req/Sec   │ 1,606  │ 1,606  │ 1,880  │ 1,993  │ 1,847.5 │ 126.88  │ 1,606  │
-├───────────┼────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
-│ Bytes/Sec │ 492 kB │ 492 kB │ 575 kB │ 610 kB │ 565 kB  │ 38.9 kB │ 491 kB │
-└───────────┴────────┴────────┴────────┴────────┴─────────┴─────────┴────────┘
+┌─────────┬──────┬──────┬───────┬──────┬─────────┬─────────┬───────┐
+│ Stat    │ 2.5% │ 50%  │ 97.5% │ 99%  │ Avg     │ Stdev   │ Max   │
+├─────────┼──────┼──────┼───────┼──────┼─────────┼─────────┼───────┤
+│ Latency │ 0 ms │ 0 ms │ 2 ms  │ 4 ms │ 0.51 ms │ 0.82 ms │ 12 ms │
+└─────────┴──────┴──────┴───────┴──────┴─────────┴─────────┴───────┘
+┌───────────┬─────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┐
+│ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg     │ Stdev    │ Min     │
+├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
+│ Req/Sec   │ 8,099   │ 8,099   │ 9,799   │ 11,647  │ 9,684   │ 1,039.86 │ 8,097   │
+├───────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┤
+│ Bytes/Sec │ 1.45 MB │ 1.45 MB │ 1.75 MB │ 2.08 MB │ 1.73 MB │ 186 kB   │ 1.45 MB │
+└───────────┴─────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┘
+
+Req/Bytes counts sampled once per second.
+# of samples: 11
+
+107k requests in 11.02s, 19.1 MB read
+```
+
+# Item Get
+```
+autocannon -c 10 -d 10 -m GET  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMzMjA4NzgsIm5hbWUiOiJBbGljZSIsInVzZXJJZCI6InVzZXIxIn0.7Axm0XyX2UgwFC_27RjOXAClYoX5saVWq88InYwgEm8"    "http://localhost:8080/v1/item"
+
+Running 10s test @ http://localhost:8080/v1/item
+10 connections
+
+
+┌─────────┬───────┬───────┬───────┬────────┬──────────┬──────────┬────────┐
+│ Stat    │ 2.5%  │ 50%   │ 97.5% │ 99%    │ Avg      │ Stdev    │ Max    │
+├─────────┼───────┼───────┼───────┼────────┼──────────┼──────────┼────────┤
+│ Latency │ 12 ms │ 28 ms │ 63 ms │ 101 ms │ 30.76 ms │ 21.31 ms │ 337 ms │
+└─────────┴───────┴───────┴───────┴────────┴──────────┴──────────┴────────┘
+┌───────────┬────────┬────────┬────────┬────────┬────────┬─────────┬────────┐
+│ Stat      │ 1%     │ 2.5%   │ 50%    │ 97.5%  │ Avg    │ Stdev   │ Min    │
+├───────────┼────────┼────────┼────────┼────────┼────────┼─────────┼────────┤
+│ Req/Sec   │ 223    │ 223    │ 351    │ 365    │ 319.3  │ 54.11   │ 223    │
+├───────────┼────────┼────────┼────────┼────────┼────────┼─────────┼────────┤
+│ Bytes/Sec │ 332 kB │ 332 kB │ 522 kB │ 543 kB │ 474 kB │ 80.4 kB │ 331 kB │
+└───────────┴────────┴────────┴────────┴────────┴────────┴─────────┴────────┘
 
 Req/Bytes counts sampled once per second.
 # of samples: 10
 
-18k requests in 10.02s, 5.65 MB read
+3k requests in 10.02s, 4.74 MB read
 ```
+
+
+
