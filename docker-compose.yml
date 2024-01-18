@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  Go Lang Service
+  go_app:
+    image: golang:latest
+    container_name: go_app_container
+    working_dir: /app
+    volumes:
+      - ./vote:/app
+    command: go run server.go
+    ports:
+      - "8080:8080"  # แก้ port ตามที่ Go Application ใช้
+
+  MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - ./data:/data/db
