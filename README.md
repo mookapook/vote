@@ -1,3 +1,16 @@
+# Use Test
+```
+username =  Alice
+password = 123456
+
+username =  Lamda
+password = 123456x
+
+username =  mookrob
+password = 123456x7
+```
+
+
 # Open Terminal
 ```
 cd path/project
