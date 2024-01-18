@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	ttlmap "9mookapook/vote/ttl"
@@ -28,6 +29,7 @@ func model() *ModelImpl {
 		if err == nil {
 			db := client.Database(dbname)
 			m = &ModelImpl{db: db, cache: cache}
+			m.mutex = new(sync.RWMutex)
 		}
 	}
 
@@ -239,7 +241,13 @@ func (b *ModelImpl) GetItemVoteByID(id primitive.ObjectID) (action Action, err e
 
 	return action, err
 }
-
+func (b *ModelImpl) VoteUserMap(itemid, userid string) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	if _, ok := userVote[itemid]; !ok {
+		userVote[itemid] = append(userVote[itemid], userid)
+	}
+}
 func (b *ModelImpl) VoteItemByUser(vote *VoteUser) (r bool, err error) {
 	r = false
 	//  Check Vote Exits with index Uniq userid , itemid
@@ -247,7 +255,7 @@ func (b *ModelImpl) VoteItemByUser(vote *VoteUser) (r bool, err error) {
 	if err != nil {
 		return r, err
 	}
-	VoteUserMap(vote.Itemid.Hex(), vote.UserID)
+	b.VoteUserMap(vote.Itemid.Hex(), vote.UserID)
 	query := primitive.M{}
 	query["_id"] = vote.Itemid
 	update := map[string]primitive.M{}
@@ -407,7 +415,7 @@ func (b *ModelImpl) CheckVote(q primitive.M) bool {
 	}
 	if data.UserID != "" {
 		//log.Println("Set")
-		VoteUserMap(data.Itemid.Hex(), data.UserID)
+		b.VoteUserMap(data.Itemid.Hex(), data.UserID)
 		go UserUniq(data.Itemid.Hex())
 	}
 	return true

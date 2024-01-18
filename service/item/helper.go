@@ -16,13 +16,6 @@ func mapUser(id string) (string, bool) {
 	return "", false
 }
 
-func VoteUserMap(itemid, userid string) {
-
-	if _, ok := userVote[itemid]; !ok {
-		userVote[itemid] = append(userVote[itemid], userid)
-	}
-}
-
 func Converthex(id string) (primitive.ObjectID, error) {
 	ID, err := primitive.ObjectIDFromHex(id)
 	return ID, err
@@ -90,6 +83,7 @@ func randomName(index int) string {
 }
 
 func UserUniq(id string) {
+
 	userVote[id] = UniqArray(userVote[id])
 }
 

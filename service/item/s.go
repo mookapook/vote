@@ -1,6 +1,7 @@
 package vote
 
 import (
+	"sync"
 	"time"
 
 	ttlmap "9mookapook/vote/ttl"
@@ -28,6 +29,7 @@ const _dateLayout = "2006/01/02 15:04"
 type ModelImpl struct {
 	db    *mongo.Database
 	cache *ttlmap.TTLMap
+	mutex *sync.RWMutex
 
 	// define any necessary dependencies
 }
