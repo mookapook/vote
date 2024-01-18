@@ -13,6 +13,26 @@ docker-compose up -d
 <https://documenter.getpostman.com/view/4032383/2s9YsRc9Em>
 ```
 
+# API Endpoint
+```
+
+GET /v1/item
+GET /v1/export
+GET /v1/exporvoteitem/:id
+
+POST /v1/login
+POST /v1/itemcreate
+POST /v1/itemvote/:id
+
+PUT  /v1/itemcreate/:id
+PUT  /v1/itemopenclose/:id
+PUT  /v1/itemclearbyid/:id
+PUT  /v1/itemclear
+
+DELETE /v1/itemcreate/:id
+
+```
+
 # Performace Test
 ```
 Use Tool autocannon
