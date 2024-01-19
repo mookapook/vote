@@ -171,6 +171,9 @@ func (b *ModelImpl) CheckVoteMoreZero(id primitive.ObjectID) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	if data.Vote < 0 {
+		go b.ClearItemAndVoteByID(id)
+	}
 	if data.Vote > 0 {
 		return false, err
 	}
@@ -248,6 +251,19 @@ func (b *ModelImpl) VoteUserMap(itemid, userid string) {
 		userVote[itemid] = append(userVote[itemid], userid)
 	}
 }
+
+func (b *ModelImpl) UnVoteUserMap(itemid, userid string) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	if _, ok := userVote[itemid]; !ok {
+		for i, other := range userVote[itemid] {
+			if other == itemid {
+				userVote[itemid] = append(userVote[itemid][:i], userVote[itemid][i+1:]...)
+			}
+		}
+	}
+}
+
 func (b *ModelImpl) VoteItemByUser(vote *VoteUser) (r bool, err error) {
 	r = false
 	//  Check Vote Exits with index Uniq userid , itemid
@@ -264,6 +280,40 @@ func (b *ModelImpl) VoteItemByUser(vote *VoteUser) (r bool, err error) {
 	}
 	update["$inc"] = primitive.M{
 		"vote": 1,
+	}
+	//otp := options.Update().SetUpsert(true)
+	_, errz := b.db.Collection(_collectionItem).UpdateOne(context.Background(), query, update)
+	if errz != nil {
+		return r, errz
+	}
+	keyid := "item" + vote.Itemid.Hex()
+	b.cache.Del(keyid)
+	go b.GetItemVoteByID(vote.Itemid)
+	return true, err
+}
+
+func (b *ModelImpl) UnvoteItem(vote *VoteUser) (r bool, err error) {
+	r = false
+	//  Check Vote Exits with index Uniq userid , itemid
+
+	filter := primitive.M{}
+	filter["itemid"] = vote.Itemid
+	filter["userid"] = vote.UserID
+
+	_, err = b.db.Collection(_collectionVote).DeleteOne(context.Background(), filter)
+	if err != nil {
+		return r, err
+	}
+
+	b.UnVoteUserMap(vote.Itemid.Hex(), vote.UserID)
+	query := primitive.M{}
+	query["_id"] = vote.Itemid
+	update := map[string]primitive.M{}
+	update["$set"] = primitive.M{
+		"updatetime": time.Now(),
+	}
+	update["$inc"] = primitive.M{
+		"vote": -1,
 	}
 	//otp := options.Update().SetUpsert(true)
 	_, errz := b.db.Collection(_collectionItem).UpdateOne(context.Background(), query, update)

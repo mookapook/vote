@@ -263,6 +263,73 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 	})
 }
 
+func (c *Controller) UnitemVoteByID(ctx echo.Context) error {
+	ID, err := Converthex(ctx.Param("id"))
+	log.Println(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusNoContent, map[string]interface{}{
+			"error": "No Content",
+		})
+	}
+
+	user := ctx.Get("userId").(string)
+	log.Println(user)
+	u, _ := mapUser(user)
+	if u == "" {
+		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"error": "Unauthorized",
+		})
+	}
+
+	if val, ok := userVote[ctx.Param("id")]; ok {
+		//val = append(val, userid)
+		if !Contains(val, user) {
+			return ctx.JSON(http.StatusOK, map[string]interface{}{
+				"error": "You Never voted",
+				"data":  "",
+			})
+		}
+
+	}
+
+	open, err := c.model.GetItemVoteByID(ID)
+	if err != nil || open.Status == "close" {
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Cannot Vote or Item Close",
+			"data":  "",
+		})
+	}
+
+	q := primitive.M{}
+	q["itemid"] = ID
+	q["userid"] = user
+	CanNotVote := c.model.CheckVote(q)
+	if CanNotVote == false {
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "You Never voted",
+			"data":  "",
+		})
+	}
+
+	v := VoteUser{}
+	v.CreateTime = time.Now()
+	v.UpDateTime = time.Now()
+	v.Itemid = ID
+	v.UserID = user
+	cx, err := c.model.UnvoteItem(&v)
+	log.Println(err)
+	if err != nil || cx == false {
+		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Cannot Vote",
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"error": "",
+		"data":  cx,
+	})
+}
+
 func (c *Controller) OpenCloseItem(ctx echo.Context) error {
 	// parse request body and extract parameters
 
