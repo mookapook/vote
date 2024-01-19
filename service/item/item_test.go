@@ -367,7 +367,7 @@ func TestUnVotebyUser(t *testing.T) {
 		}
 		if ck == false {
 			b := model.CheckVote(q)
-			if b == true {
+			if b == false {
 				t.Errorf(" Vote  Data User %s", data)
 			} else {
 				v := VoteUser{}
