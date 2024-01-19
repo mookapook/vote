@@ -383,6 +383,8 @@ func TestUnVotebyUser(t *testing.T) {
 
 		}
 	}
+
+	// Unvote เสร็จ ลอง Vote ใหม่
 	data := "user1"
 	if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
 		//val = append(val, userid)
