@@ -353,11 +353,11 @@ func TestUnVotebyUser(t *testing.T) {
 	for _, data := range user {
 		q := primitive.M{}
 		q["userid"] = data
-		itemid, _ := Converthex("65a89b41ff1dc45c844c523d")
+		itemid, _ := Converthex("65a7887f166933dd2b7a834f")
 		q["itemid"] = itemid
 		var ck bool
-		userVote["65a89b41ff1dc45c844c523d"] = append(userVote["65a89b41ff1dc45c844c523d"], data)
-		if val, ok := userVote["65a89b41ff1dc45c844c523d"]; ok {
+		userVote["65a7887f166933dd2b7a834f"] = append(userVote["65a7887f166933dd2b7a834f"], data)
+		if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
 			//val = append(val, userid)
 			if !Contains(val, data) {
 				t.Errorf(" Vote  Data MapUser %s", data)
@@ -383,11 +383,35 @@ func TestUnVotebyUser(t *testing.T) {
 
 		}
 	}
-
-	if val, ok := userVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
+	data := "user1"
+	if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
 		//val = append(val, userid)
 		if Contains(val, "user1") {
-			t.Errorf(" Vote  Data MapUser %s", "user1")
+			t.Errorf(" Vote  Data MapUser 2 %s", "user1")
+		} else {
+			q := primitive.M{}
+			q["userid"] = data
+			itemid, _ := Converthex("65a7887f166933dd2b7a834f")
+			b := model.CheckVote(q)
+			if b == false {
+				t.Errorf(" Vote  Data User %s", data)
+			} else {
+				v := VoteUser{}
+				v.CreateTime = time.Now()
+				v.UpDateTime = time.Now()
+				v.Itemid = itemid
+				v.UserID = data
+				c, err := model.VoteItemByUser(&v)
+				if err != nil || c == false {
+					t.Errorf(" CannotVote  Data User %s", data)
+				}
+			}
+		}
+
+	}
+	if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
+		if Contains(val, "user1") {
+			t.Errorf(" Vote  Data MapUser 2 %s", "user1")
 		}
 
 	}
