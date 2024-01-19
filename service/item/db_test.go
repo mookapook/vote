@@ -58,3 +58,22 @@ func TestJwt(t *testing.T) {
 func TestGenTokenuser(t *testing.T) {
 	genTokenuser()
 }
+
+func TestDeleteMapVote(t *testing.T) {
+	mapx := make(map[string]bool, 1)
+	itemid := "xxxx"
+	userid := "1"
+	mapx["1"] = true
+	mapx["2"] = true
+	UserMapVote[itemid] = mapx
+
+	if val, ok := UserMapVote[itemid]; ok {
+		if _, okk := val[userid]; okk {
+			delete(val, userid)
+		}
+	}
+	mapx["2"] = true
+	UserMapVote[itemid] = mapx
+
+	log.Println(UserMapVote)
+}

@@ -305,14 +305,18 @@ func TestVotebyUser(t *testing.T) {
 		itemid, _ := Converthex("65a5ff28f189c5fd5dfaa7a2")
 		q["itemid"] = itemid
 		var ck bool
-		if val, ok := userVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
+		if val, ok := UserMapVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
 			//val = append(val, userid)
-			if Contains(val, data) {
+			// if Contains(val, data) {
+			// 	t.Errorf(" Vote  Data MapUser %s", data)
+			// 	ck = true
+			// }
+			if _, okk := val[data]; okk {
 				t.Errorf(" Vote  Data MapUser %s", data)
 				ck = true
 			}
-
 		}
+
 		if ck == false {
 			b := model.CheckVote(q)
 			if b == true {
@@ -332,13 +336,19 @@ func TestVotebyUser(t *testing.T) {
 		}
 	}
 
-	if val, ok := userVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
+	if val, ok := UserMapVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
 		//val = append(val, userid)
-		if Contains(val, "user1") {
+		if _, okk := val["user1"]; okk {
 			t.Errorf(" Vote  Data MapUser %s", "user1")
+			//ck = true
 		}
 
 	}
+
+}
+
+func TestGetMapVote(t *testing.T) {
+	log.Println(UserMapVote)
 }
 
 func TestUnVotebyUser(t *testing.T) {
@@ -348,19 +358,25 @@ func TestUnVotebyUser(t *testing.T) {
 	}
 	cache := ttlmap.New()
 	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
-
-	user := []string{"user1"}
+	mapx := make(map[string]bool, 1)
+	// itemid := "xxxx"
+	// userid := "1"
+	mapx["user1"] = true
+	//mapx["user2"] = true
+	UserMapVote["65a7887f166933dd2b7a834f"] = mapx
+	user := []string{"user1", "user2"}
 	for _, data := range user {
 		q := primitive.M{}
 		q["userid"] = data
 		itemid, _ := Converthex("65a7887f166933dd2b7a834f")
 		q["itemid"] = itemid
 		var ck bool
-		userVote["65a7887f166933dd2b7a834f"] = append(userVote["65a7887f166933dd2b7a834f"], data)
-		if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
+
+		if val, ok := UserMapVote["65a7887f166933dd2b7a834f"]; ok {
 			//val = append(val, userid)
-			if !Contains(val, data) {
-				t.Errorf(" Vote  Data MapUser %s", data)
+			log.Println(val)
+			if _, okk := val[data]; !okk {
+				t.Errorf(" User nevere Vote  %s", data)
 				ck = true
 			}
 
@@ -368,7 +384,7 @@ func TestUnVotebyUser(t *testing.T) {
 		if ck == false {
 			b := model.CheckVote(q)
 			if b == false {
-				t.Errorf(" Vote  Data User %s", data)
+				t.Errorf(" User nevere Vote DB %s", data)
 			} else {
 				v := VoteUser{}
 				v.CreateTime = time.Now()
@@ -386,16 +402,21 @@ func TestUnVotebyUser(t *testing.T) {
 
 	// Unvote เสร็จ ลอง Vote ใหม่
 	data := "user1"
-	if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
+	if val, ok := UserMapVote["65a7887f166933dd2b7a834f"]; ok {
+
 		//val = append(val, userid)
-		if Contains(val, "user1") {
-			t.Errorf(" Vote  Data MapUser 2 %s", "user1")
+		log.Println("check")
+		log.Println(val)
+		if _, okk := val[data]; okk {
+			t.Errorf(" User  Vote  %s", data)
+
 		} else {
 			q := primitive.M{}
 			q["userid"] = data
 			itemid, _ := Converthex("65a7887f166933dd2b7a834f")
+			q["itemid"] = itemid
 			b := model.CheckVote(q)
-			if b == false {
+			if b == true {
 				t.Errorf(" Vote  Data User %s", data)
 			} else {
 				v := VoteUser{}
@@ -411,11 +432,14 @@ func TestUnVotebyUser(t *testing.T) {
 		}
 
 	}
-	if val, ok := userVote["65a7887f166933dd2b7a834f"]; ok {
-		if Contains(val, "user1") {
-			t.Errorf(" Vote  Data MapUser 2 %s", "user1")
-		}
+	if val, ok := UserMapVote["65a7887f166933dd2b7a834f"]; ok {
 
+		//val = append(val, userid)
+
+		if _, okk := val[data]; okk {
+			t.Errorf(" User Check Last Vote  %s", data)
+
+		}
 	}
 }
 

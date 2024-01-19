@@ -135,7 +135,8 @@ func (b *ModelImpl) ClearItemAndVoteByID(id primitive.ObjectID) (bool, error) {
 		success = true
 		keyid := "item" + id.Hex()
 		b.cache.Del(keyid)
-		delete(userVote, id.Hex())
+		//delete(userVote, id.Hex())
+		delete(UserMapVote, id.Hex())
 		go b.db.Collection(_collectionVote).DeleteMany(context.Background(), filter)
 	}
 	return success, nil
@@ -159,13 +160,21 @@ func (b *ModelImpl) ClearItemAndVoteALL() (bool, error) {
 	if r.ModifiedCount > 0 {
 		filter := primitive.M{}
 		success = true
-		userVote = make(map[string][]string)
+		//userVote = make(map[string][]string)
+		go b.DelelteMapVote()
 		go b.cache.DelALL()
 		go b.db.Collection(_collectionVote).DeleteMany(context.Background(), filter)
 	}
 	return success, nil
 }
 
+func (b *ModelImpl) DelelteMapVote() {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	for k := range UserMapVote {
+		delete(UserMapVote, k)
+	}
+}
 func (b *ModelImpl) CheckVoteMoreZero(id primitive.ObjectID) (bool, error) {
 	data, err := b.GetItemVoteByID(id)
 	if err != nil {
@@ -252,21 +261,20 @@ func (b *ModelImpl) VoteUserMap(itemid, userid string) {
 	// } else {
 
 	// }
-	userVote[itemid] = append(userVote[itemid], userid)
+	mapx := make(map[string]bool, 1)
+	mapx[userid] = true
+	UserMapVote[itemid] = mapx
+	//userVote[itemid] = append(userVote[itemid], userid)
 }
 
 func (b *ModelImpl) UnVoteUserMap(itemid, userid string) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	if val, ok := userVote[itemid]; ok {
-		for i, other := range val {
-			if other == userid {
-				userVote[itemid] = append(val[:i], val[i+1:]...)
-				break
-			}
+	if val, ok := UserMapVote[itemid]; ok {
+		if _, okk := val[userid]; okk {
+			delete(val, userid)
 		}
-
 	}
 
 }
@@ -453,7 +461,6 @@ func (b *ModelImpl) GetAllItem(skip, limit int, sortby, user, status string) []A
 	}
 
 	for i := range items {
-		log.Println(len(items[i].Votes))
 		if len(items[i].Votes) > 0 {
 			items[i].HasVoted = true
 		} else {
@@ -479,7 +486,7 @@ func (b *ModelImpl) CheckVote(q primitive.M) bool {
 	if data.UserID != "" {
 		//log.Println("Set")
 		b.VoteUserMap(data.Itemid.Hex(), data.UserID)
-		go b.UserUniq(data.Itemid.Hex())
+		//go b.UserUniq(data.Itemid.Hex())
 	}
 	return true
 }

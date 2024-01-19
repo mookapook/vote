@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	userMap   = make(map[string]User)
-	UserLogin = make(map[string]DataUser)
-	userVote  = make(map[string][]string)
+	userMap     = make(map[string]User)
+	UserLogin   = make(map[string]DataUser)
+	userVote    = make(map[string][]string)
+	UserMapVote = make(map[string]map[string]bool)
 )
 
 func NewController() *Controller {
@@ -214,17 +215,27 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 		})
 	}
 
-	if val, ok := userVote[ctx.Param("id")]; ok {
-		//val = append(val, userid)
-		log.Println(val)
-		if Contains(val, user) {
+	if val, ok := UserMapVote[ctx.Param("id")]; ok {
+		if _, okk := val[user]; okk {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
 				"error": "You have voted",
 				"data":  "",
 			})
 		}
-
 	}
+
+	// if val, ok := userVote[ctx.Param("id")]; ok {
+
+	// 	//val = append(val, userid)
+	// 	log.Println(val)
+	// 	if Contains(val, user) {
+	// 		return ctx.JSON(http.StatusOK, map[string]interface{}{
+	// 			"error": "You have voted",
+	// 			"data":  "",
+	// 		})
+	// 	}
+
+	// }
 
 	open, err := c.model.GetItemVoteByID(ID)
 	if err != nil || open.Status == "close" {
@@ -240,7 +251,7 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 	CanNotVote := c.model.CheckVote(q)
 	if CanNotVote == true {
 		return ctx.JSON(http.StatusOK, map[string]interface{}{
-			"error": "You have voted",
+			"error": "You have voteds",
 			"data":  "",
 		})
 	}
@@ -282,16 +293,31 @@ func (c *Controller) UnitemVoteByID(ctx echo.Context) error {
 		})
 	}
 
-	if val, ok := userVote[ctx.Param("id")]; ok {
-		//val = append(val, userid)
-		if !Contains(val, user) {
+	if val, ok := UserMapVote[ctx.Param("id")]; ok {
+		if _, okk := val[user]; !okk {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
-				"error": "You Never voted 1",
+				"error": "You Never voted",
 				"data":  "",
 			})
 		}
 
+	} else {
+		return ctx.JSON(http.StatusOK, map[string]interface{}{
+			"error": "You Never voted",
+			"data":  "",
+		})
 	}
+
+	// if val, ok := userVote[ctx.Param("id")]; ok {
+	// 	//val = append(val, userid)
+	// 	if !Contains(val, user) {
+	// 		return ctx.JSON(http.StatusOK, map[string]interface{}{
+	// 			"error": "You Never voted 1",
+	// 			"data":  "",
+	// 		})
+	// 	}
+
+	// }
 
 	open, err := c.model.GetItemVoteByID(ID)
 	if err != nil || open.Status == "close" {
