@@ -464,6 +464,12 @@ func (b *ModelImpl) GetAllItem(skip, limit int, sortby, user, status string) []A
 	return items
 }
 
+func (b *ModelImpl) UserUniq(id string) {
+	b.mutex.Lock()
+	defer b.mutex.RLock()
+	userVote[id] = UniqArray(userVote[id])
+}
+
 func (b *ModelImpl) CheckVote(q primitive.M) bool {
 	var data VoteUser
 	if err := b.db.Collection(_collectionVote).FindOne(context.Background(), q).Decode(&data); err != nil {
@@ -473,7 +479,7 @@ func (b *ModelImpl) CheckVote(q primitive.M) bool {
 	if data.UserID != "" {
 		//log.Println("Set")
 		b.VoteUserMap(data.Itemid.Hex(), data.UserID)
-		go UserUniq(data.Itemid.Hex())
+		go b.UserUniq(data.Itemid.Hex())
 	}
 	return true
 }

@@ -82,11 +82,6 @@ func randomName(index int) string {
 	return names[index]
 }
 
-func UserUniq(id string) {
-
-	userVote[id] = UniqArray(userVote[id])
-}
-
 func UniqArray[T comparable](data []T) []T {
 	seen := map[T]bool{}
 	result := []T{}
