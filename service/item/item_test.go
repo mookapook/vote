@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,7 +23,8 @@ func TestCreateItemModel(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
-	model := &ModelImpl{db: client2.Database("itemv")}
+	cache := ttlmap.New()
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 
 	action := &Action{
 		Name:        "Test Action",
@@ -64,7 +66,7 @@ func TestUpdateItemModel(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 
 	action := &Action{
 		Name:        "Test Action",
@@ -97,7 +99,7 @@ func TestDeleteItemModel(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 
 	// Error NO ID
 	ID, err := Converthex("65a5ff28f189c5fd5dfaa7a1")
@@ -134,7 +136,7 @@ func TestGetdataByID(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 
 	// Error NO ID
 	ID, err := Converthex("65a5ff28f189c5fd5dfaa7a2")
@@ -162,7 +164,7 @@ func TestVoteByItem(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 
 	v := VoteUser{}
 	v.CreateTime = time.Now()
@@ -295,7 +297,7 @@ func TestVotebyUser(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 	user := []string{"user1", "user2"}
 	for _, data := range user {
 		q := primitive.M{}
@@ -322,6 +324,58 @@ func TestVotebyUser(t *testing.T) {
 				v.Itemid = itemid
 				v.UserID = data
 				c, err := model.VoteItemByUser(&v)
+				if err != nil || c == false {
+					t.Errorf(" CannotVote  Data User %s", data)
+				}
+			}
+
+		}
+	}
+
+	if val, ok := userVote["65a5ff28f189c5fd5dfaa7a2"]; ok {
+		//val = append(val, userid)
+		if Contains(val, "user1") {
+			t.Errorf(" Vote  Data MapUser %s", "user1")
+		}
+
+	}
+}
+
+func TestUnVotebyUser(t *testing.T) {
+	client2, err := ConnectDB()
+	if err != nil {
+		t.Fatalf("ClientV2 failed to connect with key: %v", err)
+	}
+	cache := ttlmap.New()
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
+
+	user := []string{"user1"}
+	for _, data := range user {
+		q := primitive.M{}
+		q["userid"] = data
+		itemid, _ := Converthex("65a89b41ff1dc45c844c523d")
+		q["itemid"] = itemid
+		var ck bool
+		userVote["65a89b41ff1dc45c844c523d"] = append(userVote["65a89b41ff1dc45c844c523d"], data)
+		if val, ok := userVote["65a89b41ff1dc45c844c523d"]; ok {
+			//val = append(val, userid)
+			if !Contains(val, data) {
+				t.Errorf(" Vote  Data MapUser %s", data)
+				ck = true
+			}
+
+		}
+		if ck == false {
+			b := model.CheckVote(q)
+			if b == true {
+				t.Errorf(" Vote  Data User %s", data)
+			} else {
+				v := VoteUser{}
+				v.CreateTime = time.Now()
+				v.UpDateTime = time.Now()
+				v.Itemid = itemid
+				v.UserID = data
+				c, err := model.UnvoteItem(&v)
 				if err != nil || c == false {
 					t.Errorf(" CannotVote  Data User %s", data)
 				}
@@ -447,7 +501,7 @@ func TestGetALLItem(t *testing.T) {
 		t.Fatalf("ClientV2 failed to connect with key: %v", err)
 	}
 	cache := ttlmap.New()
-	model := &ModelImpl{db: client2.Database("itemv"), cache: cache}
+	model := &ModelImpl{db: client2.Database("itemv"), cache: cache, mutex: new(sync.RWMutex)}
 	vote := model.GetAllItem(0, 10+1, "vote", "user1", "open")
 	if len(vote) == 11 {
 		//temp := datainfo.Content

@@ -28,8 +28,8 @@ func model() *ModelImpl {
 		client, err := newMongo(dbhost, "item")
 		if err == nil {
 			db := client.Database(dbname)
-			m = &ModelImpl{db: db, cache: cache}
-			m.mutex = new(sync.RWMutex)
+			m = &ModelImpl{db: db, cache: cache, mutex: new(sync.RWMutex)}
+
 		}
 	}
 
@@ -261,8 +261,6 @@ func (b *ModelImpl) UnVoteUserMap(itemid, userid string) {
 
 	if val, ok := userVote[itemid]; ok {
 		for i, other := range val {
-			log.Println(other)
-			log.Println(userid)
 			if other == userid {
 				userVote[itemid] = append(val[:i], val[i+1:]...)
 				break

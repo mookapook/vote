@@ -219,7 +219,7 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 		log.Println(val)
 		if Contains(val, user) {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
-				"error": "You have voted 1",
+				"error": "You have voted",
 				"data":  "",
 			})
 		}
