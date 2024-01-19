@@ -247,21 +247,30 @@ func (b *ModelImpl) GetItemVoteByID(id primitive.ObjectID) (action Action, err e
 func (b *ModelImpl) VoteUserMap(itemid, userid string) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	if _, ok := userVote[itemid]; !ok {
-		userVote[itemid] = append(userVote[itemid], userid)
-	}
+	// if _, ok := userVote[itemid]; !ok {
+	// 	userVote[itemid] = append(userVote[itemid], userid)
+	// } else {
+
+	// }
+	userVote[itemid] = append(userVote[itemid], userid)
 }
 
 func (b *ModelImpl) UnVoteUserMap(itemid, userid string) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
-	if _, ok := userVote[itemid]; !ok {
-		for i, other := range userVote[itemid] {
-			if other == itemid {
-				userVote[itemid] = append(userVote[itemid][:i], userVote[itemid][i+1:]...)
+
+	if val, ok := userVote[itemid]; ok {
+		for i, other := range val {
+			log.Println(other)
+			log.Println(userid)
+			if other == userid {
+				userVote[itemid] = append(val[:i], val[i+1:]...)
+				break
 			}
 		}
+
 	}
+
 }
 
 func (b *ModelImpl) VoteItemByUser(vote *VoteUser) (r bool, err error) {

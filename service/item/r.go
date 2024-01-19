@@ -58,6 +58,9 @@ func Route() {
 	// Vote By Item
 	app.POST("/v1/itemvote/:id", c.itemVoteByID, JWTAuthMiddleware)
 
+	// unVote By Item
+	app.PUT("/v1/itemvote/:id", c.UnitemVoteByID, JWTAuthMiddleware)
+
 	// Remove Data All and Vote member All
 	app.PUT("/v1/itemclear", c.ClearALL, JWTAuthMiddleware)
 	// Clear data by id
@@ -74,7 +77,7 @@ func Route() {
 	app.GET("/v1/export", c.ExportItem, JWTAuthMiddleware)
 
 	// Export Data ALL
-	app.GET("/v1/exporvoteitem/:id", c.ExportItem, JWTAuthMiddleware)
+	app.GET("/v1/exporvoteitem/:id", c.ExportVoteByItem, JWTAuthMiddleware)
 }
 
 func JWTAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

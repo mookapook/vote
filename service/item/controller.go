@@ -216,9 +216,10 @@ func (c *Controller) itemVoteByID(ctx echo.Context) error {
 
 	if val, ok := userVote[ctx.Param("id")]; ok {
 		//val = append(val, userid)
+		log.Println(val)
 		if Contains(val, user) {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
-				"error": "You have voted",
+				"error": "You have voted 1",
 				"data":  "",
 			})
 		}
@@ -285,7 +286,7 @@ func (c *Controller) UnitemVoteByID(ctx echo.Context) error {
 		//val = append(val, userid)
 		if !Contains(val, user) {
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
-				"error": "You Never voted",
+				"error": "You Never voted 1",
 				"data":  "",
 			})
 		}

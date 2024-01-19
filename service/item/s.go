@@ -14,8 +14,8 @@ var (
 	digit  = "qazwsx123"
 	client *mongo.Client
 	dbname string
-	dbhost = "mongodb:27017"
-	//dbhost = "localhost:27017"
+	//dbhost = "mongodb:27017"
+	dbhost = "localhost:27017"
 
 	_collectionItem = "item"
 	_collectionVote = "vote"
