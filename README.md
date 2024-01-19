@@ -35,8 +35,9 @@ GET /v1/exporvoteitem/:id
 
 POST /v1/login
 POST /v1/itemcreate
-POST /v1/itemvote/:id
+POST /v1/itemvote/:id //vote
 
+PUT /v1/itemvote/:id  //Unvote
 PUT  /v1/itemcreate/:id
 PUT  /v1/itemopenclose/:id
 PUT  /v1/itemclearbyid/:id
