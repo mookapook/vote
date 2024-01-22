@@ -263,7 +263,16 @@ func (b *ModelImpl) VoteUserMap(itemid, userid string) {
 	// }
 	mapx := make(map[string]bool, 1)
 	mapx[userid] = true
-	UserMapVote[itemid] = mapx
+
+	// if _ , ok := UserMapVote[itemid]; !ok {
+
+	// }
+
+	if _, okk := UserMapVote[itemid][userid]; !okk {
+		//delete(val, userid)
+		UserMapVote[itemid] = mapx
+	}
+	//UserMapVote[itemid] = mapx
 	//userVote[itemid] = append(userVote[itemid], userid)
 }
 

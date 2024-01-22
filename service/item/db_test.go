@@ -64,14 +64,21 @@ func TestDeleteMapVote(t *testing.T) {
 	itemid := "xxxx"
 	userid := "1"
 	mapx["1"] = true
-	mapx["2"] = true
-	UserMapVote[itemid] = mapx
 
-	if val, ok := UserMapVote[itemid]; ok {
-		if _, okk := val[userid]; okk {
-			delete(val, userid)
-		}
+	//UserMapVote[itemid] = mapx
+	if _, okk := UserMapVote[itemid][userid]; !okk {
+		//delete(val, userid)
+		log.Println("111")
+		UserMapVote[itemid] = mapx
 	}
+
+	// UserMapVote[itemid] = mapx
+
+	// if val, ok := UserMapVote[itemid]; ok {
+	// 	if _, okk := val[userid]; okk {
+	// 		delete(val, userid)
+	// 	}
+	// }
 	mapx["2"] = true
 	UserMapVote[itemid] = mapx
 
